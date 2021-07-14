@@ -8,8 +8,8 @@ import { getExchangeRates } from "../api";
 const supportedCurrencies = ["USD", "EUR", "JPY", "CAD", "GBP", "MXN"];
 
 export function ExchangeRate() {
-  const amount = useSelector((state) => state.amount);
-  const currencyCode = useSelector((state) => state.currencyCode);
+  const amount = useSelector((state) => state.rates.amount);
+  const currencyCode = useSelector((state) => state.rates.currencyCode);
   const [currencyData, setCurrencyData] = useState({ USD: 1.0 });
 
   // fetch the exchange rates each time currency code changes
