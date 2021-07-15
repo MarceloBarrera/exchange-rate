@@ -18,9 +18,10 @@ export function ExchangeRate() {
   const currencyData = useSelector(getCurrencyData);
 
   // fetch the exchange rates the first time ...
-  useEffect(() => {
-    dispatch(changeCurrencyCode(currencyCode));
-  }, [dispatch, currencyCode]);
+  // this has been removed in favour of grabbing rates when app starts check index.js
+  // useEffect(() => {
+  //   dispatch(changeCurrencyCode(currencyCode));
+  // }, [dispatch, currencyCode]);
 
   return (
     <>
