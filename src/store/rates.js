@@ -1,11 +1,10 @@
 import { getExchangeRates } from "../api";
 
-export const supportedCurrencies = ["USD", "EUR", "JPY", "CAD", "GBP", "MXN"];
-
 const initialState = {
   amount: "19.99",
   currencyCode: "CAD",
   currencyData: { USD: 1.0 },
+  supportedCurrencies: ["USD", "EUR", "JPY", "CAD", "GBP", "MXN"],
 };
 
 export function ratesReducer(state = initialState, action) {
@@ -14,8 +13,14 @@ export function ratesReducer(state = initialState, action) {
       return { ...state, amount: action.payload };
     case CURRENCY_CODE_CHANGED:
       return { ...state, currencyCode: action.payload };
-    case "rates/ratesReceived":
-      return { ...state, currencyData: action.payload };
+    case "rates/ratesReceived": {
+      const codes = Object.keys(action.payload).concat(state.currencyCode);
+      return {
+        ...state,
+        currencyData: action.payload,
+        supportedCurrencies: codes,
+      };
+    }
     default:
       return state;
   }
@@ -25,8 +30,9 @@ export function ratesReducer(state = initialState, action) {
 export const getAmount = (state) => state.rates.amount;
 export const getCurrencyCode = (state) => state.rates.currencyCode;
 export const getCurrencyData = (state) => state.rates.currencyData;
+export const getSupportedCurrencies = (state) =>
+  state.rates.supportedCurrencies;
 // action types
-
 export const AMOUNT_CHANGED = "rates/amountChanged";
 export const CURRENCY_CODE_CHANGED = "rates/currencyCodeChanged";
 
@@ -45,7 +51,9 @@ export function changeCurrencyCode(currencyCode) {
   // When this function is passed to `dispatch`, the thunk middleware will intercept it,
   // and call it with `dispatch` and `getState` as arguments.
   // This gives the thunk function the ability to run some logic, and still interact with the store.
-  return function changeCurrencyCodeThunk(dispatch) {
+  return function changeCurrencyCodeThunk(dispatch, getState) {
+    const state = getState();
+    const supportedCurrencies = getSupportedCurrencies(state);
     dispatch({
       type: CURRENCY_CODE_CHANGED,
       payload: currencyCode,
