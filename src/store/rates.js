@@ -1,9 +1,9 @@
 import { getExchangeRates } from "../api";
 
 const initialState = {
-  amount: "19.99",
+  amount: "10.00",
   currencyCode: "CAD",
-  currencyData: { USD: 1.0 },
+  currencyData: { USD: { displayLabel: "US Dollars", code: "USD", rate: 1.0 } },
   supportedCurrencies: ["USD", "EUR", "JPY", "CAD", "GBP", "MXN"],
 };
 
@@ -14,11 +14,29 @@ export function ratesReducer(state = initialState, action) {
     case CURRENCY_CODE_CHANGED:
       return { ...state, currencyCode: action.payload };
     case "rates/ratesReceived": {
-      const codes = Object.keys(action.payload).concat(state.currencyCode);
+      const codes = Object.keys(action.payload);
+
+      const currencyData = {};
+      for (const code in action.payload) {
+        currencyData[code] = { code, rate: action.payload[code] };
+      }
       return {
         ...state,
-        currencyData: action.payload,
+        currencyData,
         supportedCurrencies: codes,
+      };
+    }
+    case "rates/labelsReceived": {
+      const { displayLabel, currencyCode } = action.payload;
+      return {
+        ...state,
+        [currencyCode]: { ...state.currencyData[currencyCode], displayLabel },
+        // currencyData: state.currencyData.map((data) => {
+        //   if (currencyCode === data.code) {
+        //     return { ...data, displayLabel };
+        //   }
+        //   return data;
+        // }),
       };
     }
     default:
@@ -32,6 +50,16 @@ export const getCurrencyCode = (state) => state.rates.currencyCode;
 export const getCurrencyData = (state) => state.rates.currencyData;
 export const getSupportedCurrencies = (state) =>
   state.rates.supportedCurrencies;
+
+export const getDisplayLabel = (state, currencyCode) => {
+  // const match = state.rates.currencyData.find(
+  //   (data) => data.code === currencyCode
+  // );
+  const match = state.rates.currencyData[currencyCode];
+  if (match) {
+    return match.displayLabel;
+  }
+};
 // action types
 export const AMOUNT_CHANGED = "rates/amountChanged";
 export const CURRENCY_CODE_CHANGED = "rates/currencyCodeChanged";
@@ -59,6 +87,7 @@ export function changeCurrencyCode(currencyCode) {
       payload: currencyCode,
     });
     getExchangeRates(currencyCode, supportedCurrencies).then((rates) => {
+      console.log("rates", rates);
       dispatch({
         type: "rates/ratesReceived",
         payload: rates,
